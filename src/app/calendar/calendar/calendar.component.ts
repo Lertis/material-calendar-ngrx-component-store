@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
+import { FormControl, FormGroup } from "@angular/forms";
 import { DateFilterFn } from "@angular/material/datepicker";
 import { CalendarHeaderComponent } from "./calendar-header/calendar-header.component";
 import { DateStatusesClasses, ONLY_WEEKDAYS } from "./../entity";
@@ -16,8 +17,11 @@ export class CalendarComponent {
 	@Input() disableWeekdays = false;
 	@Input() monthCalendarView = [];
 
-	private readonly DATE_FORMAT = "YYYY-MM-DD";
-	date = { obj: moment(new Date(2020, 11, 9)).format(this.DATE_FORMAT) };
+	calendarForm = new FormGroup({
+		selectedDate: new FormControl(new Date())
+ });
+
+	errorMessage = ONLY_WEEKDAYS;
 	readonly calendarHeaderComponent = CalendarHeaderComponent;
 
 	datepickerFilter: DateFilterFn<Date | null> = (dateForCheck: Date | null) => {
@@ -36,6 +40,10 @@ export class CalendarComponent {
 	private isDayWeekend(day: Date): boolean {
 		const numberOfTheDay = day.getDay();
 		return numberOfTheDay !== 0 && numberOfTheDay !== 6;
+	}
+
+	isWeekdayAbleToSelected(): boolean {
+		return util.isWeekdayAbleToSelected(moment(this.calendarForm.controls.selectedDate.value), this.disableWeekdays);
 	}
 
 	dateClass = (dateForCheck: Date) => {
@@ -72,9 +80,18 @@ export class CalendarComponent {
 	}
 
 	datepickerOpened(): void {
+		this.validSelectedDate();
 		setTimeout(() => {
-		//	this.updateDayTooltips();
+			this.updateDayTooltips();
 		});
+	}
+
+	private validSelectedDate(): void {
+		// If selected date combined with disable weekend config => selectedDate should be cleared
+		if (this.disableWeekdays && !this.isDayWeekend(this.calendarForm.controls.selectedDate.value as Date)) {
+			this.calendarForm.controls.selectedDate.setValue(null);
+		}
+		console.log("validateSelectedDate");
 	}
 
 	datepickerClosed(): void {
