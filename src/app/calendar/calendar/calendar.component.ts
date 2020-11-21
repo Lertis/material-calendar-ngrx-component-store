@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
 import { DateFilterFn } from "@angular/material/datepicker";
 import { CalendarHeaderComponent } from "./calendar-header/calendar-header.component";
-import { DateStatusesClasses } from "./../entity";
+import { DateStatusesClasses, ONLY_WEEKDAYS } from "./../entity";
+import * as util from "./utils";
 import * as moment from "moment";
 
 @Component({
@@ -13,9 +14,10 @@ import * as moment from "moment";
 export class CalendarComponent {
 
 	@Input() disableWeekdays = false;
+	@Input() monthCalendarView = [];
 
 	private readonly DATE_FORMAT = "YYYY-MM-DD";
-	date = { obj: moment(new Date()).format(this.DATE_FORMAT) };
+	date = { obj: moment(new Date(2020, 11, 9)).format(this.DATE_FORMAT) };
 	readonly calendarHeaderComponent = CalendarHeaderComponent;
 
 	datepickerFilter: DateFilterFn<Date | null> = (dateForCheck: Date | null) => {
@@ -40,7 +42,7 @@ export class CalendarComponent {
 		// Mock classes for days
 		const dayNumber = dateForCheck.getDay();
 		if (dayNumber === 2) {
-			return DateStatusesClasses.OK;
+			return DateStatusesClasses.Valid;
 		}
 		if (dayNumber === 3) {
 			return DateStatusesClasses.Black;
@@ -54,8 +56,25 @@ export class CalendarComponent {
 		return "";
 	}
 
+	updateDayTooltips(): void {
+		const elements = document.querySelectorAll(".endDate .mat-calendar-content");
+		const dateSlots: any = elements.length > 0 ?
+			Array.from(elements[0].querySelectorAll(".mat-calendar-body-cell")) : [];
+
+		dateSlots.forEach((slot: any) => {
+			const slotArea = util.getDateFromHtmlAttribute(slot);
+			if (util.isWeekdayAbleToSelected(slotArea, this.disableWeekdays)) {
+				const htmlElement: HTMLElement = slot.querySelectorAll("div")[0];
+				htmlElement.classList.add("tooltip");
+				util.createTooltipDomTree(htmlElement, [ONLY_WEEKDAYS]);
+			}
+		});
+	}
+
 	datepickerOpened(): void {
-		console.log("datepickerOpened");
+		setTimeout(() => {
+		//	this.updateDayTooltips();
+		});
 	}
 
 	datepickerClosed(): void {
