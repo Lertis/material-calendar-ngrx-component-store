@@ -3,6 +3,8 @@ import { DateAdapter, MatDateFormats, MAT_DATE_FORMATS } from "@angular/material
 import { MatCalendar } from "@angular/material/datepicker";
 import { Subject } from "rxjs";
 import { takeUntil } from "rxjs/operators";
+import { IDatesInfo } from "../../entity";
+import { DatesStore } from "../../store/dates.store";
 
 @Component({
 	selector: "app-calendar-header",
@@ -17,10 +19,15 @@ export class CalendarHeaderComponent<D> implements OnDestroy {
 		@Inject(MAT_DATE_FORMATS) private readonly dateFormats: MatDateFormats,
 		private readonly calendar: MatCalendar<D>,
 		private readonly dateAdapter: DateAdapter<D>,
-		private readonly cdr: ChangeDetectorRef) {
+		private readonly cdr: ChangeDetectorRef,
+		private readonly store: DatesStore) {
 		this.calendar.stateChanges.pipe(
 			takeUntil(this.destroy$)
 		).subscribe(() => this.cdr.markForCheck());
+
+		this.store.dates$.pipe(
+			takeUntil(this.destroy$),
+		).subscribe((dates: IDatesInfo[]) => console.log(dates));
 	}
 
 	get periodLabel(): string {

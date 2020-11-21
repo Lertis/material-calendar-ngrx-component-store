@@ -1,28 +1,46 @@
-import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, Self } from "@angular/core";
 import { FormControl, FormGroup } from "@angular/forms";
 import { DateFilterFn } from "@angular/material/datepicker";
+import { Subject } from "rxjs";
 import { CalendarHeaderComponent } from "./calendar-header/calendar-header.component";
-import { DateStatusesClasses, ONLY_WEEKDAYS } from "./../entity";
+import { DatesStore } from "../store/dates.store";
+import { DateStatusesClasses, IDatesInfo, ONLY_WEEKDAYS } from "./../entity";
 import * as util from "./utils";
 import * as moment from "moment";
+import { DatesService } from "../services/dates.service";
+import { takeUntil } from "rxjs/operators";
 
 @Component({
 	selector: "app-calendar",
 	templateUrl: "./calendar.component.html",
 	styleUrls: ["./calendar.component.scss"],
-	changeDetection: ChangeDetectionStrategy.OnPush
+	changeDetection: ChangeDetectionStrategy.OnPush,
+	providers: [DatesStore, DatesService]
 })
-export class CalendarComponent {
+export class CalendarComponent implements OnInit, OnDestroy {
 
 	@Input() disableWeekdays = false;
 	@Input() monthCalendarView = [];
 
+	private readonly destroy$ = new Subject<void>();
+
 	calendarForm = new FormGroup({
 		selectedDate: new FormControl(new Date())
- });
+	});
 
 	errorMessage = ONLY_WEEKDAYS;
 	readonly calendarHeaderComponent = CalendarHeaderComponent;
+
+	constructor(
+		@Self() private readonly store: DatesStore,
+		@Self() private readonly datesService: DatesService) {
+	}
+
+	ngOnInit(): void {
+		this.datesService.getDates("URL TO GET DATA").pipe(
+			takeUntil(this.destroy$)
+		).subscribe((dates: IDatesInfo[]) => this.store.updateDatesInfo(dates));
+	}
 
 	datepickerFilter: DateFilterFn<Date | null> = (dateForCheck: Date | null) => {
 		if (dateForCheck === null) {
@@ -96,5 +114,10 @@ export class CalendarComponent {
 
 	datepickerClosed(): void {
 		console.log("datepickerClosed");
+	}
+
+	ngOnDestroy(): void {
+		this.destroy$.next();
+		this.destroy$.complete();
 	}
 }
