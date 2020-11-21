@@ -1,8 +1,9 @@
 .example-header {
 	display: flex;
-	align-items: end;
+	align-items: stretch;
 	padding: 0.5em;
 	height: 50px;
+	justify-content: center;
 }
 
 .example-header-label {

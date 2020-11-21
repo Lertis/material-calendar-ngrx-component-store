@@ -10,7 +10,6 @@ import { MatButtonModule } from "@angular/material/button";
 
 import { CalendarHeaderComponent } from "./calendar/calendar-header/calendar-header.component";
 import { CalendarComponent } from "./calendar/calendar.component";
-
 const MATERIAL_MODULES = [
 	MatDatepickerModule,
 	MatNativeDateModule,
